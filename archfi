@@ -771,6 +771,7 @@ installmenu(){
 }
 
 selectmirrorsbycountry() {
+        clear
 		if [[ ! -f /etc/pacman.d/mirrorlist.backup ]]; then
 				cp /etc/pacman.d/mirrorlist /etc/pacman.d/mirrorlist.backup
 		fi    
