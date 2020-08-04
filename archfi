@@ -913,7 +913,8 @@ archmenu(){
 	options+=("${txtsethostname}" "/etc/hostname")
 	options+=("${txtsetkeymap}" "/etc/vconsole.conf")
 	options+=("${txtsetfont}" "/etc/vconsole.conf (${txtoptional})")
-	options+=("${txtsetlocale}" "/etc/locale.conf, /etc/locale.gen")
+	options+=("${txtsetlocale}" "/etc/locale.conf")
+	options+=("${txtgenlocale}" "/etc/locale.gen")
 	options+=("${txtsettime}" "/etc/localtime")
 	options+=("${txtsetrootpassword}" "")
 	options+=("${txtgenerate//%1/fstab}" "")
@@ -952,8 +953,13 @@ archmenu(){
 			;;
 			"${txtsetlocale}")
 				archsetlocale
-				nextitem="${txtsettime}"
+				nextitem="${txtgenlocale}"
 			;;
+			"${txtgenlocale}")
+				archgenlocale
+				nextitem="${txtsettime}"
+			;;			
+			
 			"${txtsettime}")
 				archsettime
 				nextitem="${txtsetrootpassword}"
@@ -1104,25 +1110,48 @@ archsetlocale(){
 	options=()
 	defsel=""
 	for item in ${items}; do
-		if [ "${defsel}" == "" ]&&[ "${keymap::2}" == "${item::2}" ]; then
-			defsel="${item}"
+		#if [ "${defsel}" == "" ]&&[ "${keymap::2}" == "${item::2}" ]; then
+		#	defsel="${item}"
+		#fi
+		if [ "${item}" = "en_US" ] || [ "${item}" = "zh_CN" ] || [ "${item}" = "zh_HK" ] || [ "${item}" = "zh_TW" ]; then
+            options+=("${item}" "" on)		
+		else
+            options+=("${item}" "" off)
 		fi
-		options+=("${item}" "")
-	done
-	locale=$(whiptail --backtitle "${apptitle}" --title "${txtsetlocale}" --menu "" --default-item "${defsel}" 0 0 0 \
-		"${options[@]}" \
-		3>&1 1>&2 2>&3)
-	if [ "$?" = "0" ]; then
-		clear
+	done	
+    locales=$(whiptail --backtitle "${apptitle}" --title "${txtsetlocale}" --checklist "" 0 0 0 \
+    "${options[@]}" \
+    3>&1 1>&2 2>&3)
+    if [ ! "$?" = "0" ]; then
+		return 1
+	fi
+	for itm in $locales; do
 		echo "echo \"LANG=${locale}.UTF-8\" > /mnt/etc/locale.conf"
 		echo "LANG=${locale}.UTF-8" > /mnt/etc/locale.conf
-		echo "echo \"LC_COLLATE=C\" >> /mnt/etc/locale.conf"
-		echo "LC_COLLATE=C" >> /mnt/etc/locale.conf
-		echo "sed -i '/#${locale}.UTF-8/s/^#//g' /mnt/etc/locale.gen"
-		sed -i '/#'${locale}'.UTF-8/s/^#//g' /mnt/etc/locale.gen
-		archchroot setlocale
-		pressanykey
-	fi
+		# 		echo "echo \"LC_COLLATE=C\" >> /mnt/etc/locale.conf"
+# 		echo "LC_COLLATE=C" >> /mnt/etc/locale.conf
+# 		echo "sed -i '/#${locale}.UTF-8/s/^#//g' /mnt/etc/locale.gen"
+# 		sed -i '/#'${locale}'.UTF-8/s/^#//g' /mnt/etc/locale.gen
+	done
+	pressanykey
+# 	locale=$(whiptail --backtitle "${apptitle}" --title "${txtsetlocale}" --menu "" --default-item "${defsel}" 0 0 0 \
+# 		"${options[@]}" \
+# 		3>&1 1>&2 2>&3)
+# 	
+# 			
+# 	if [ "$?" = "0" ]; then
+# 		clear
+# 		echo "echo \"LANG=${locale}.UTF-8\" > /mnt/etc/locale.conf"
+# 		echo "LANG=${locale}.UTF-8" > /mnt/etc/locale.conf
+# 		echo "echo \"LC_COLLATE=C\" >> /mnt/etc/locale.conf"
+# 		echo "LC_COLLATE=C" >> /mnt/etc/locale.conf
+# 		echo "sed -i '/#${locale}.UTF-8/s/^#//g' /mnt/etc/locale.gen"
+# 		sed -i '/#'${locale}'.UTF-8/s/^#//g' /mnt/etc/locale.gen
+# 		
+# 	fi
+}
+archgenlocale(){
+    archchroot setlocale	
 }
 archsetlocalechroot(){
 	echo "locale-gen"
@@ -1897,6 +1926,7 @@ loadstrings(){
 	txtsethostname="Set Computer Name"
 	txtsetfont="Set Font"
 	txtsetlocale="Set Locale"
+	txtgenlocale="Gen Locale"
 	txtsettime="Set Time"
 	txtsetrootpassword="Set root password"
 
