@@ -1127,7 +1127,7 @@ archsetlocale(){
 	fi
 	for itm in $locales; do
 		echo "echo \"LANG=${locale}.UTF-8\" > /mnt/etc/locale.conf"
-		echo "LANG=${locale}.UTF-8" > /mnt/etc/locale.conf
+		echo "LANG=${locale}.UTF-8" >> /mnt/etc/locale.conf
 		# 		echo "echo \"LC_COLLATE=C\" >> /mnt/etc/locale.conf"
 # 		echo "LC_COLLATE=C" >> /mnt/etc/locale.conf
 # 		echo "sed -i '/#${locale}.UTF-8/s/^#//g' /mnt/etc/locale.gen"
