@@ -771,7 +771,6 @@ installmenu(){
 }
 
 selectmirrorsbycountry() {
-        clear
 		if [[ ! -f /etc/pacman.d/mirrorlist.backup ]]; then
 				cp /etc/pacman.d/mirrorlist /etc/pacman.d/mirrorlist.backup
 		fi    
@@ -791,7 +790,10 @@ selectmirrorsbycountry() {
 				return 1    
 		fi
 		#sed "s/^\(Server .*\)/\#\1/;/^## $country/N; {s/^\(## .*\n\)\#Server \(.*\)/\1Server \2/}" < /etc/pacman.d/mirrorlist.backup > /etc/pacman.d/mirrorlist
+		clear
+		echo "reflector $country"
 		reflector --verbose -c $country --sort rate  -a 12 -p https --save /etc/pacman.d/mirrorlist
+		pressanykey
 }
 
 installbase(){
@@ -913,9 +915,9 @@ archmenu(){
 	options=()
 	options+=("${txtsethostname}" "/etc/hostname")
 	options+=("${txtsetkeymap}" "/etc/vconsole.conf")
-	options+=("${txtsetfont}" "/etc/vconsole.conf (${txtoptional})")
-	options+=("${txtsetlocale}" "/etc/locale.conf")
+	options+=("${txtsetfont}" "/etc/vconsole.conf (${txtoptional})")	
 	options+=("${txtgenlocale}" "/etc/locale.gen")
+	options+=("${txtsetlocale}" "/etc/locale.conf")
 	options+=("${txtsettime}" "/etc/localtime")
 	options+=("${txtsetrootpassword}" "")
 	options+=("${txtgenerate//%1/fstab}" "")
@@ -946,18 +948,18 @@ archmenu(){
 			;;
 			"${txtsetkeymap}")
 				archsetkeymap
-				nextitem="${txtsetlocale}"
+				nextitem="${txtgenlocale}"
 			;;
 			"${txtsetfont}")
 				archsetfont
-				nextitem="${txtsetlocale}"
-			;;
-			"${txtsetlocale}")
-				archsetlocale
 				nextitem="${txtgenlocale}"
 			;;
 			"${txtgenlocale}")
 				archgenlocale
+				nextitem="${txtsetlocale}"
+			;;
+			"${txtsetlocale}")
+				archsetlocale
 				nextitem="${txtsettime}"
 			;;			
 			
@@ -1106,57 +1108,47 @@ archsetfont(){
 	fi
 }
 
-archsetlocale(){
+archgenlocale(){
 	items=$(ls /usr/share/i18n/locales)
 	options=()
 	defsel=""
 	for item in ${items}; do
-		#if [ "${defsel}" == "" ]&&[ "${keymap::2}" == "${item::2}" ]; then
-		#	defsel="${item}"
-		#fi
 		if [ "${item}" = "en_US" ] || [ "${item}" = "zh_CN" ] || [ "${item}" = "zh_HK" ] || [ "${item}" = "zh_TW" ]; then
             options+=("${item}" "" on)		
 		else
             options+=("${item}" "" off)
 		fi
 	done	
-    locales=$(whiptail --backtitle "${apptitle}" --title "${txtsetlocale}" --checklist "" 0 0 0 \
+    sel=$(whiptail --backtitle "${apptitle}" --title "${txtgenlocale}" --checklist "" 0 0 0 \
     "${options[@]}" \
     3>&1 1>&2 2>&3)
     if [ ! "$?" = "0" ]; then
 		return 1
 	fi
-	for itm in $locales; do
-		echo "echo \"LANG=${locale}.UTF-8\" > /mnt/etc/locale.conf"
-		echo "LANG=${locale}.UTF-8" >> /mnt/etc/locale.conf
-		# 		echo "echo \"LC_COLLATE=C\" >> /mnt/etc/locale.conf"
-# 		echo "LC_COLLATE=C" >> /mnt/etc/locale.conf
-# 		echo "sed -i '/#${locale}.UTF-8/s/^#//g' /mnt/etc/locale.gen"
-# 		sed -i '/#'${locale}'.UTF-8/s/^#//g' /mnt/etc/locale.gen
+	for itm in $sel; do
+		locales="$locales $(echo $itm | sed 's/"//g')"
 	done
+	clear
+	
+	for locale in $locales; do	
+        echo "${locale}"
+        echo "${locales}"
+		echo "sed -i '/#${locale}.UTF-8/s/^#//g' /mnt/etc/locale.gen"
+		sed -i '/#'${locale}'.UTF-8/s/^#//g' /mnt/etc/locale.gen
+	done
+	archchroot genlocale
 	pressanykey
-# 	locale=$(whiptail --backtitle "${apptitle}" --title "${txtsetlocale}" --menu "" --default-item "${defsel}" 0 0 0 \
-# 		"${options[@]}" \
-# 		3>&1 1>&2 2>&3)
-# 	
-# 			
-# 	if [ "$?" = "0" ]; then
-# 		clear
-# 		echo "echo \"LANG=${locale}.UTF-8\" > /mnt/etc/locale.conf"
-# 		echo "LANG=${locale}.UTF-8" > /mnt/etc/locale.conf
-# 		echo "echo \"LC_COLLATE=C\" >> /mnt/etc/locale.conf"
-# 		echo "LC_COLLATE=C" >> /mnt/etc/locale.conf
-# 		echo "sed -i '/#${locale}.UTF-8/s/^#//g' /mnt/etc/locale.gen"
-# 		sed -i '/#'${locale}'.UTF-8/s/^#//g' /mnt/etc/locale.gen
-# 		
-# 	fi
+
 }
-archgenlocale(){
-    archchroot setlocale	
+archsetlocale(){
+    echo "echo \"LANG=${locale}.UTF-8\" > /mnt/etc/locale.conf"
+    echo "LANG=${locale}.UTF-8" > /mnt/etc/locale.conf
+	
 }
-archsetlocalechroot(){
+archgenlocalechroot(){
 	echo "locale-gen"
 	locale-gen
+	pressanykey
 	exit
 }
 
@@ -2022,7 +2014,7 @@ done
 if [ "${chroot}" = "1" ]; then
 	case ${command} in
 		'setrootpassword') archsetrootpasswordchroot;;
-		'setlocale') archsetlocalechroot;;
+		'genlocale') archgenlocalechroot;;
 		'settimeutc') archsettimeutcchroot;;
 		'settimelocal') archsettimelocalchroot;;
 		'genmkinitcpio') archgenmkinitcpiochroot;;
