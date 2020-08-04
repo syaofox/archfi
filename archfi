@@ -781,9 +781,9 @@ selectmirrorsbycountry() {
 		
 		IFS_ORIG=$IFS
 		IFS=$'\n'
-		for item in ${items}; do
-				options+=("${item}" "")
-		done
+		#for item in ${items}; do
+		#		options+=("${item}" "")
+		#done
 		IFS=$IFS_ORIG
 		country=$(whiptail --backtitle "${APPTITLE}" --title "${txtselectcountry}" --menu "" 0 0 0 "${options[@]}" 3>&1 1>&2 2>&3)
 		if [ "$?" != "0" ]; then
