@@ -27,7 +27,7 @@ mainmenu(){
 		nextitem=${1}
 	fi
 	options=()
-	options+=("${txtlanguage}" "Language")
+	# options+=("${txtlanguage}" "Language")
 	options+=("${txtsetkeymap}" "(loadkeys ...)")
 	options+=("${txteditor}" "(${txtoptional})")
 	options+=("${txtdiskpartmenu}" "")
@@ -39,10 +39,10 @@ mainmenu(){
 		3>&1 1>&2 2>&3)
 	if [ "$?" = "0" ]; then
 		case ${sel} in
-			"${txtlanguage}")
-				chooselanguage
-				nextitem="${txtsetkeymap}"
-			;;
+			# "${txtlanguage}")
+			# 	chooselanguage
+			# 	nextitem="${txtsetkeymap}"
+			# ;;
 			"${txtsetkeymap}")
 				setkeymap
 				nextitem="${txtdiskpartmenu}"
@@ -78,44 +78,44 @@ mainmenu(){
 	fi
 }
 
-chooselanguage(){
-	options=()
-	options+=("Arabic" "(By Mohammad Alawadi)")
-	options+=("Brazilian" "(By MaxWilliamJF)")
-	options+=("Dutch" "(By bowero)")
-	options+=("English" "(By MatMoul)")
-	options+=("French" "(By MatMoul)")
-	options+=("German" "(By untergrundbiber)")
-	options+=("Greek" "(By quelotic)")
-	options+=("Italian" "(By thegoldgoat)")
-	options+=("Hungarian" "(By KardiWeb)")
-	options+=("Norwegian" "(By mrboen94)")
-	options+=("Polish" "(By dawidd6)")
-	options+=("Portuguese" "(By hugok)")
-	options+=("Russian" "(By Anonymous_Prodject)")
-	options+=("Spanish" "(By Mystogab)")
-	options+=("Turkish" "(By c0b41)")
-	sel=$(whiptail --backtitle "${apptitle}" --title "${txtlanguage}" --menu "" 0 0 0 \
-		"${options[@]}" \
-		3>&1 1>&2 2>&3)
-	if [ "$?" = "0" ]; then
-		clear
-		if [ "${sel}" = "English" ]; then
-			loadstrings
-		else
-			eval $(curl -L ${baseurl}/lng/${sel} | sed '/^#/ d')
-		fi
-		if [ "${skipfont}" = "0" ]; then
-			eval $(setfont ${font})
-		fi
-		font=
-		if [ "$(cat /etc/locale.gen | grep ""#${locale}"")" != "" ]; then
-			sed -i "/#${locale}/s/^#//g" /etc/locale.gen
-			locale-gen
-		fi
-		export LANG=${locale}
-	fi
-}
+# chooselanguage(){
+# 	options=()
+# 	options+=("Arabic" "(By Mohammad Alawadi)")
+# 	options+=("Brazilian" "(By MaxWilliamJF)")
+# 	options+=("Dutch" "(By bowero)")
+# 	options+=("English" "(By MatMoul)")
+# 	options+=("French" "(By MatMoul)")
+# 	options+=("German" "(By untergrundbiber)")
+# 	options+=("Greek" "(By quelotic)")
+# 	options+=("Italian" "(By thegoldgoat)")
+# 	options+=("Hungarian" "(By KardiWeb)")
+# 	options+=("Norwegian" "(By mrboen94)")
+# 	options+=("Polish" "(By dawidd6)")
+# 	options+=("Portuguese" "(By hugok)")
+# 	options+=("Russian" "(By Anonymous_Prodject)")
+# 	options+=("Spanish" "(By Mystogab)")
+# 	options+=("Turkish" "(By c0b41)")
+# 	sel=$(whiptail --backtitle "${apptitle}" --title "${txtlanguage}" --menu "" 0 0 0 \
+# 		"${options[@]}" \
+# 		3>&1 1>&2 2>&3)
+# 	if [ "$?" = "0" ]; then
+# 		clear
+# 		if [ "${sel}" = "English" ]; then
+# 			loadstrings
+# 		else
+# 			eval $(curl -L ${baseurl}/lng/${sel} | sed '/^#/ d')
+# 		fi
+# 		if [ "${skipfont}" = "0" ]; then
+# 			eval $(setfont ${font})
+# 		fi
+# 		font=
+# 		if [ "$(cat /etc/locale.gen | grep ""#${locale}"")" != "" ]; then
+# 			sed -i "/#${locale}/s/^#//g" /etc/locale.gen
+# 			locale-gen
+# 		fi
+# 		export LANG=${locale}
+# 	fi
+# }
 
 setkeymap(){
 	#items=$(localectl list-keymaps)
@@ -813,7 +813,10 @@ installbase(){
 	fi
 	
 	options=()
+	options+=("base-devel" "(${txtoptional})" on)
+	options+=("linux-lts-headers" "(${txtoptional})" on)
 	options+=("linux-firmware" "(${txtoptional})" on)
+	options+=("intel-ucode" "(${txtoptional})" on)
 	sel=$(whiptail --backtitle "${apptitle}" --title "${txtinstallarchlinuxfirmwares}" --checklist "" 0 0 0 \
 		"${options[@]}" \
 		3>&1 1>&2 2>&3)
@@ -825,6 +828,7 @@ installbase(){
 	done
 
 	options=()
+
 	if [[ "${fspkgs}" == *"dosfstools"* ]]; then
 		options+=("dosfstools" "" on)
 	else
@@ -916,8 +920,8 @@ archmenu(){
 	options+=("${txtsethostname}" "/etc/hostname")
 	options+=("${txtsetkeymap}" "/etc/vconsole.conf")
 	options+=("${txtsetfont}" "/etc/vconsole.conf (${txtoptional})")	
-	options+=("${txtgenlocale}" "/etc/locale.gen")
-	options+=("${txtsetlocale}" "/etc/locale.conf")
+	options+=("${txtgenlocale}" "/etc/locale.gen /etc/locale.conf")
+	# options+=("${txtsetlocale}" "/etc/locale.conf")
 	options+=("${txtsettime}" "/etc/localtime")
 	options+=("${txtsetrootpassword}" "")
 	options+=("${txtgenerate//%1/fstab}" "")
@@ -956,12 +960,12 @@ archmenu(){
 			;;
 			"${txtgenlocale}")
 				archgenlocale
-				nextitem="${txtsetlocale}"
-			;;
-			"${txtsetlocale}")
-				archsetlocale
 				nextitem="${txtsettime}"
-			;;			
+			;;
+			# "${txtsetlocale}")
+			# 	archsetlocale
+			# 	nextitem="${txtsettime}"
+			# ;;			
 			
 			"${txtsettime}")
 				archsettime
@@ -1131,24 +1135,39 @@ archgenlocale(){
 	clear
 	
 	for locale in $locales; do	
-        echo "${locale}"
-        echo "${locales}"
 		echo "sed -i '/#${locale}.UTF-8/s/^#//g' /mnt/etc/locale.gen"
 		sed -i '/#'${locale}'.UTF-8/s/^#//g' /mnt/etc/locale.gen
 	done
 	archchroot genlocale
-	pressanykey
 
+	options=()
+	for litm in ${locales}; do
+		options+=("${litm}" "")
+	done
+
+	sellocale=$(whiptail --backtitle "${apptitle}" --title "${txtsetlocale}" --menu "" 0 0 0 \
+    "${options[@]}" \
+    3>&1 1>&2 2>&3)
+    if [ ! "$?" = "0" ]; then
+		return 1
+	fi
+	clear
+	echo "echo \"LANG=${sellocale}.UTF-8\" > /mnt/etc/locale.conf"
+    echo "LANG=${sellocale}.UTF-8" > /mnt/etc/locale.conf
+
+	pressanykey
 }
-archsetlocale(){
-    echo "echo \"LANG=${locale}.UTF-8\" > /mnt/etc/locale.conf"
-    echo "LANG=${locale}.UTF-8" > /mnt/etc/locale.conf
+
+# archsetlocale(){
 	
-}
+#     echo "echo \"LANG=${locale}.UTF-8\" > /mnt/etc/locale.conf"
+#     echo "LANG=${locale}.UTF-8" > /mnt/etc/locale.conf
+	
+# }
+
 archgenlocalechroot(){
 	echo "locale-gen"
 	locale-gen
-	pressanykey
 	exit
 }
 
@@ -1748,9 +1767,12 @@ archrefindinstallchroot(){
 archextrasmenu(){
 	pkgs=""
 	options=()
-	options+=("nano" "" on)
 	options+=("vim" "" on)
-	options+=("dhcpcd" "" on)
+	options+=("git" "" on)
+	options+=("dnsutils" "" on)
+	options+=("openssh" "" on)
+	options+=("nano" "" off)	
+	options+=("dhcpcd" "" off)
 	sel=$(whiptail --backtitle "${apptitle}" --title "${txtextrasmenu}" --checklist "" 0 0 0 \
 		"${options[@]}" \
 		3>&1 1>&2 2>&3)
@@ -1919,7 +1941,7 @@ loadstrings(){
 	txtsethostname="Set Computer Name"
 	txtsetfont="Set Font"
 	txtsetlocale="Set Locale"
-	txtgenlocale="Gen Locale"
+	txtgenlocale="Gen & Set Locale"
 	txtsettime="Set Time"
 	txtsetrootpassword="Set root password"
 
@@ -2045,7 +2067,7 @@ else
 		fi
 	fi
 	loadstrings
-	EDITOR=nano
+	EDITOR=vim
 	mainmenu
 fi
 
